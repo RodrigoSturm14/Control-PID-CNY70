@@ -1,4 +1,15 @@
 //--- Pines INPUT / OUTPUT ---
+// Motores
+#define M2A 22
+#define M2B 23
+#define M1B 19
+#define M1A 21
+// Canales
+#define LEFT_1 14
+#define LEFT_2 13
+#define RIGHT_1 12
+#define RIGHT_2 11
+// CNY70
 #define PIN_CNY1 4
 #define PIN_CNY2 2
 #define PIN_BOTON 22
@@ -9,6 +20,9 @@
 // --- Estados logicos ---
 #define LEFT 0
 #define RIGHT 1
+#define BACKWARD 0
+#define FORWARD 1
+#define QUIETO 0
 
 // --- Velocidades ---
 #define VEL_MIN_PID 110
@@ -41,14 +55,65 @@ bool all_white = false;
 
 bool estado = true;
 
+const int PWMFreq = 1000;
+const int PWMResolution = 8;
+
+// --------------------------- Funciones ---------------------------
 bool boton_on_off() {
   return estado = digitalRead(PIN_BOTON);
+}
+
+void pins_and_PWM_setup() {
+  // --- Pines Motores (RPWM & LPWM) ---
+  pinMode(M1A, OUTPUT);
+  pinMode(M1B, OUTPUT);
+  pinMode(M2A, OUTPUT);
+  pinMode(M2B, OUTPUT);
+  // --- CONFIG. PWM ---
+  ledcSetup(LEFT_1, PWMFreq, PWMResolution);
+  ledcSetup(LEFT_2, PWMFreq, PWMResolution);
+  ledcSetup(RIGHT_1, PWMFreq, PWMResolution);
+  ledcSetup(RIGHT_2, PWMFreq, PWMResolution);
+  // --- Enlace canales PWM a pines motores ---
+  ledcAttachPin(M1A, LEFT_1);
+  ledcAttachPin(M1B, LEFT_2);
+  ledcAttachPin(M2A, RIGHT_1);
+  ledcAttachPin(M2B, RIGHT_2);
+}
+
+void motor(int motor, int direccion, int velocidad) {
+
+  if (motor == 0) {
+
+    if (direccion == 0) {  // ---> gira en un sentido
+      ledcWrite(LEFT_1, velocidad);
+      ledcWrite(LEFT_2, 0);
+
+    } else {  // direccion == 1 ---> gira en el otro sentido
+      ledcWrite(LEFT_1, 0);
+      ledcWrite(LEFT_2, velocidad);
+    }
+  }
+
+  else if (motor == 1) {
+
+    if (direccion == 0) {  // ---> gira en un sentido
+      ledcWrite(RIGHT_1, 0);
+      ledcWrite(RIGHT_2, velocidad);
+
+    } else {  // direccion == 1 ---> gira en el otro sentido
+      ledcWrite(RIGHT_1, velocidad);
+      ledcWrite(RIGHT_2, 0);
+    }
+  }
 }
 
 void setup() {
 
   pinMode(PIN_CNY1, INPUT);
   pinMode(PIN_CNY2, INPUT);
+  pinMode(PIN_BOTON, INPUT);
+  pins_and_PWM_setup();
   Serial.begin(115200);
 
   for (int i = 0; i < CNY_CANT; i++) {
@@ -144,32 +209,40 @@ void loop() {
     if (black_side == LEFT) {
       Serial.print("Motor derecho: Adelante - ");
       Serial.println(VEL_WHITE_FLOOR);
+      motor(RIGHT, FORWARD, VEL_WHITE_FLOOR);
+
       Serial.println("Motor izquierdo: Quieto - 0");
+      motor(LEFT, FORWARD, QUIETO);
     } else {
       Serial.println("Motor derecho: Quieto - 0");
+      motor(RIGHT, FORWARD, QUIETO);
+
       Serial.print("Motor izquierdo: Adelante - ");
       Serial.println(VEL_WHITE_FLOOR);
+      motor(LEFT, FORWARD, VEL_WHITE_FLOOR);
     }
   } else {
-    
+
     if (vel_der < VEL_MIN) {
       int x = VEL_MIN + (VEL_MIN - vel_der);
       Serial.print("Motor derecho: Atras - ");
       Serial.println(x);
-    }
-    else{
+      motor(RIGHT, BACKWARD, x);
+    } else {
       Serial.print("Motor derecho: Adelante - ");
       Serial.println(vel_der);
+      motor(RIGHT, FORWARD, vel_der);
     }
 
     if (vel_izq < VEL_MIN) {
       int g = VEL_MIN + (VEL_MIN - vel_izq);
       Serial.print("Motor izquierdo: Atras - ");
       Serial.println(g);
-    }
-    else{
+      motor(LEFT, BACKWARD, g);
+    } else {
       Serial.print("Motor izquierdo: Adelante - ");
       Serial.println(vel_izq);
+      motor(LEFT, FORWARD, vel_izq);
     }
   }
 

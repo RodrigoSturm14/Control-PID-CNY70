@@ -1,39 +1,45 @@
+//--- Pines INPUT / OUTPUT ---
 #define PIN_CNY1 4
 #define PIN_CNY2 2
-
 #define PIN_BOTON 22
 
+//--- Cantidad sensores CNY70 ---
 #define CNY_CANT 2
 
-int pines_CNY70[CNY_CANT] = { PIN_CNY1, PIN_CNY2 };
+// --- Estados logicos ---
+#define LEFT 0
+#define RIGHT 1
 
-int valores_max_leidos[CNY_CANT];
-int valores_min_leidos[CNY_CANT];
-int valores_actuales[CNY_CANT];
-
-int valor;
-bool estado = true;
-
-#define KP 10
-int lecturas, error, calc_p;
-float gain = 120;
-float error_prom_max = (KP * 15600);
-float error_prom_min = (KP * -15600);
-
+// --- Velocidades ---
 #define VEL_MIN_PID 110
 #define VEL_MIN 80
 #define VEL_WHITE_FLOOR 100
 
-int vel_der, vel_izq;
-#define LEFT 0
-#define RIGHT 1
+// --- Calculo Proporcional ---
+#define KP 10
+int error, calc_p;
+float gain = 120;
+float error_prom_max = (KP * 15600);
+float error_prom_min = (KP * -15600);
+
+// --- Posicion lado negro ---
 bool black_side = RIGHT;
 // bool black_side = LEFT;
+
+int vel_der, vel_izq;
+
+int pines_CNY70[CNY_CANT] = { PIN_CNY1, PIN_CNY2 };
+
+// --- Calibracion de sensores ---
+int valores_max_leidos[CNY_CANT];
+int valores_min_leidos[CNY_CANT];
+int valor;
+
+// --- Lecturas de sensores ---
+int valores_actuales[CNY_CANT];
 bool all_white = false;
 
-// int valores_leidos[CNY_CANT];
-
-//int sensor_1, sensor_2, sensor_5, sensor_6, error, PID_calc;
+bool estado = true;
 
 bool boton_on_off() {
   return estado = digitalRead(PIN_BOTON);
@@ -83,45 +89,6 @@ void setup() {
   Serial.println(valores_max_leidos[0]);
   Serial.print("Valores maximos CNY 2 (FINALES): ");
   Serial.println(valores_max_leidos[1]);
-
-
-  /*
-  sensor_1 = map(2900, 160, 3200, 1000, 0);
-  Serial.print("Sensor 1 hola = ");
-  Serial.println(sensor_1);
-  sensor_1 = constrain(sensor_1, 0, 1000);
-
-
-  sensor_6 = map(2900, 160, 3200, 0, 1000);
-  Serial.print("Sensor 6 hola= ");
-  Serial.println(sensor_6);
-  sensor_6 = constrain(sensor_6, 0, 1000);
-
-  while(boton_on_off() == true){
-    int valor_cny1 = analogRead(PIN_CNY1);
-    int valor_cny1 = analogRead(PIN_CNY1);
-    // valores_min son los valores minnimos del sensor 
-    valores_min[0] = constrain(min_value_read[0], -100000, valor_cny1); 
-    valores_min[1] = constrain(min_value_read[1], -100000, valor_cny2);
-    // valores_max son los valores maximos del sensor q dejo q el sensor tome 
-    valores_max[0] = constrain(max_value_read[0], valor_cny1, 100000);
-    valores_max[1] = constrain(max_value_read[1], valor_cny2, 100000);
-  }
-
-  error = (-16 * sensor_1) + (-8 * sensor_2) + (-4 * sensor_2) + (-2 * sensor_2) + (2 * sensor_5) + (4 * sensor_6) + (8 * sensor_6) + (16 * sensor_6);
-
-  Serial.print("Error = ");
-  Serial.println(error);
-
-
-  PID_calc = (kp * -29220);
-  calc_pid_min_promedio = -156000;
-  calc_pid_max_promedio = 156000;
-  PID_calc = map(PID_calc, calc_pid_min_promedio, calc_pid_max_promedio, (-1 * gain), gain);  // lo q le voy a restar a la velocidad de los motores
-
-  Serial.print("Calculo P(ID) = ");
-  Serial.println(PID_calc);
-  */
 }
 
 void loop() {
@@ -207,17 +174,4 @@ void loop() {
   }
 
   delay(1000);
-
-  /*
-  int CNY1 = analogRead(PIN_CNY1);
-  int CNY2 = analogRead(PIN_CNY2);
-
-  Serial.print("Lectura CNY1: ");
-  Serial.println(CNY1);
-
-  Serial.print("Lectura CNY2: ");
-  Serial.println(CNY2);
-
-  delay(1500);
-  */
 }

@@ -12,12 +12,13 @@
 // CNY70
 #define PIN_CNY1 4
 #define PIN_CNY2 2
-#define PIN_BOTON 22
+#define PIN_BOTON 5
 
 //--- Cantidad sensores CNY70 ---
 #define CNY_CANT 2
 
 // --- Estados logicos ---
+#define DEBUG 1
 #define LEFT 0
 #define RIGHT 1
 #define BACKWARD 0
@@ -154,6 +155,7 @@ void setup() {
   Serial.println(valores_max_leidos[0]);
   Serial.print("Valores maximos CNY 2 (FINALES): ");
   Serial.println(valores_max_leidos[1]);
+  delay(5000);
 }
 
 void loop() {

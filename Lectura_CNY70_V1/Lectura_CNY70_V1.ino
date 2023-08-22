@@ -9,18 +9,25 @@
 #define LEFT_2 13
 #define RIGHT_1 12
 #define RIGHT_2 11
-// CNY70
-#define PIN_CNY1 4
-#define PIN_CNY2 2
-#define PIN_BOTON 5
+// Sensores --> CNY70
+#define PIN_CNY_1 13
+#define PIN_CNY_2 27
+#define PIN_CNY_3 26
+#define PIN_CNY_4 25
+#define PIN_CNY_5 34
+#define PIN_CNY_6 35
+#define PIN_CNY_7 32
+#define PIN_CNY_8 33
+
+#define PIN_BOTON 16
 
 //--- Cantidad sensores CNY70 ---
-#define CNY_CANT 2
+#define CNY_CANT 8
 
 // --- Estados logicos ---
 #define DEBUG 1
-#define LEFT 0
-#define RIGHT 1
+#define LEFT 1
+#define RIGHT 2
 #define BACKWARD 0
 #define FORWARD 1
 #define QUIETO 0
@@ -43,7 +50,7 @@ bool black_side = RIGHT;
 
 int vel_der, vel_izq;
 
-int pines_CNY70[CNY_CANT] = { PIN_CNY1, PIN_CNY2 };
+int pines_CNY70[CNY_CANT] = { PIN_CNY_1, PIN_CNY_2, PIN_CNY_3, PIN_CNY_4, PIN_CNY_5, PIN_CNY_6, PIN_CNY_7, PIN_CNY_8 };
 
 // --- Calibracion de sensores ---
 int valores_max_leidos[CNY_CANT];
@@ -110,15 +117,15 @@ void motor(int motor, int direccion, int velocidad) {
 }
 
 void setup() {
+  for (int i = 0; i < CNY_CANT; i++) {
+    pinMode(pines_CNY70[i], INPUT);
+  }
 
-  pinMode(PIN_CNY1, INPUT);
-  pinMode(PIN_CNY2, INPUT);
   pinMode(PIN_BOTON, INPUT);
-  pins_and_PWM_setup();
   Serial.begin(115200);
+  pins_and_PWM_setup();
 
   for (int i = 0; i < CNY_CANT; i++) {
-
     valores_min_leidos[i] = 100000;
     valores_max_leidos[i] = -100000;
   }
@@ -126,15 +133,29 @@ void setup() {
   //calibrar lecturas minimas y maximas
   while (boton_on_off() == true) {
     Serial.println("Calibrando..");
+    delay(500);
     for (int i = 0; i < CNY_CANT; i++) {
 
       valor = analogRead(pines_CNY70[i]);
 
       valores_min_leidos[i] = constrain(valores_min_leidos[i], -100000, valor);
       valores_max_leidos[i] = constrain(valores_max_leidos[i], valor, 100000);
-    }
 
-    Serial.print("Valores mininimos CNY 1: ");
+      /*Serial.print("Valores mininimos CNY ");
+      Serial.print(i);
+      Serial.print(" :");
+      Serial.println(valores_min_leidos[i]);
+      Serial.println();
+      delay(100);
+
+      Serial.print("Valores maximos CNY ");
+      Serial.print(i);
+      Serial.print(" :");
+      Serial.println(valores_max_leidos[i]);
+      Serial.println();
+      delay(100);*/
+    }
+    /*Serial.print("Valores mininimos CNY 1: ");
     Serial.println(valores_min_leidos[0]);
     Serial.print("Valores mininimos CNY 2: ");
     Serial.println(valores_min_leidos[1]);
@@ -143,10 +164,25 @@ void setup() {
     Serial.println(valores_max_leidos[0]);
     Serial.print("Valores maximos CNY 2: ");
     Serial.println(valores_max_leidos[1]);
-    delay(1000);
+    delay(1000);*/
+  }
+  for (int i = 0; i < CNY_CANT; i++) {
+    Serial.print("Valores FINALES mininimos CNY ");
+    Serial.print(i);
+    Serial.print(" :");
+    Serial.println(valores_min_leidos[i]);
+    Serial.println();
+    delay(100);
+
+    Serial.print("Valores FINALES maximos CNY ");
+    Serial.print(i);
+    Serial.print(" :");
+    Serial.println(valores_max_leidos[i]);
+    Serial.println();
+    delay(100);
   }
 
-  Serial.print("Valores mininimos CNY 1 (FINALES): ");
+  /*Serial.print("Valores mininimos CNY 1 (FINALES): ");
   Serial.println(valores_min_leidos[0]);
   Serial.print("Valores mininimos CNY 2 (FINALES): ");
   Serial.println(valores_min_leidos[1]);
@@ -154,11 +190,13 @@ void setup() {
   Serial.print("Valores maximos CNY 1 (FINALES): ");
   Serial.println(valores_max_leidos[0]);
   Serial.print("Valores maximos CNY 2 (FINALES): ");
-  Serial.println(valores_max_leidos[1]);
+  Serial.println(valores_max_leidos[1]);*/
+
   delay(5000);
 }
 
 void loop() {
+
   all_white = false;
   // obtener lecturas de sensores y establecer logica para la cuenta de error
   for (int i = 0; i < CNY_CANT / 2; i++) {
@@ -173,8 +211,10 @@ void loop() {
     valores_actuales[i] = constrain(valores_actuales[i], 0, 1000);
   }
 
-  // error = (-2 * valores_actuales[0]) + (2 * valores_actuales[1]);
-  error = (-2 * valores_actuales[1]) + (2 * valores_actuales[0]);
+  // error = (-16 * valores_actuales[0]) + (-8 * valores_actuales[1]) + (-4 * valores_actuales[2]) + (-2 * valores_actuales[3]) + (2 * valores_actuales[4]) + (4 * valores_actuales[5]) + (8 * valores_actuales[6]) + (16 * valores_actuales[7]);
+  error = (-16 * valores_actuales[7]) + (-8 * valores_actuales[6]) + (-4 * valores_actuales[5]) + (-2 * valores_actuales[4]) + (2 * valores_actuales[3]) + (4 * valores_actuales[2]) + (8 * valores_actuales[1]) + (16 * valores_actuales[0]);
+
+  // error = (-2 * valores_actuales[1]) + (2 * valores_actuales[0]);
   Serial.println();
   Serial.print("Error: ");
   Serial.println(error);
@@ -190,11 +230,12 @@ void loop() {
   Serial.println(calc_p);
   Serial.println();
 
-  if (error < -1500) all_white = true;
+  if (error < -26000) all_white = true;
 
   if (error < error_prom_min) error_prom_min = error;
   if (error > error_prom_max) error_prom_max = error;
 
+  //////////////////////////
   if (black_side == LEFT) {
     vel_der = VEL_MIN_PID - calc_p;
     vel_izq = VEL_MIN_PID + calc_p;
@@ -202,13 +243,15 @@ void loop() {
     vel_der = VEL_MIN_PID + calc_p;
     vel_izq = VEL_MIN_PID - calc_p;
   }
+  //////////////////////////
 
   vel_der = constrain(vel_der, 0, 255);
   vel_izq = constrain(vel_izq, 0, 255);
 
+  //////////////////////////
   if (all_white) {
 
-    if (black_side == LEFT) {
+    if (black_side == RIGHT) {
       Serial.print("Motor derecho: Adelante - ");
       Serial.println(VEL_WHITE_FLOOR);
       motor(RIGHT, FORWARD, VEL_WHITE_FLOOR);
@@ -247,6 +290,7 @@ void loop() {
       motor(LEFT, FORWARD, vel_izq);
     }
   }
+  //////////////////////////
 
   delay(1000);
 }
